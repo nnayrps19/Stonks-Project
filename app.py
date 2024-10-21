@@ -22,7 +22,6 @@ def load_data(symbol, start_date, end_date):
 @app.route('/download', methods=['GET'])
 
 
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
