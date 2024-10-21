@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading System</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Trading System - Historical Data</h1>
+    
+    <form method="POST" action="/">
+        <label for="symbol">Symbol:</label>
+        <input type="text" id="symbol" name="symbol" placeholder="e.g., FNGU" required>
+        <br>
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required>
+        <br>
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required>
+        <br>
+        <button type="submit">Load Data</button>
+    </form>
+
+    <div id="graph"></div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const graphData = JSON.parse(data.graph_data);
+
+                const dates = graphData.map(row => row.Date);
+                const prices = graphData.map(row => row.Close);
+
+                const trace = {
+                    x: dates,
+                    y: prices,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: 'blue' }
+                };
+
+                Plotly.newPlot('graph', [trace]);
+            } else {
+                alert('No data found for the given symbol and date range.');
+            }
+        });
+    </script>
+</body>
+</html>
