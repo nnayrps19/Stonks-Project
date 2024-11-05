@@ -10,9 +10,11 @@
 
     <form method="POST">
         <button type="submit">Run Backtest</button>
+        <button type="button" onclick="window.location.href='/'">Back to Home</button>
     </form>
 
     {% if plot_url %}
+        
         <h2>Backtest Plot:</h2>
         <img src="{{ plot_url }}" alt="Backtest Plot">
     {% endif %}

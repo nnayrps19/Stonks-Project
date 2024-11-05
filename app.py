@@ -1,44 +1,48 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import pandas as pd
 import json
 from datetime import *
 from downloader import *
 from stonksbacktest import *
-import os
 import matplotlib.pyplot as plt
+
 
 app = Flask(__name__)
 
-def load_data(symbol, start_date, end_date):
-    try:
-        with open('history.json', 'r') as f:
-            data = json.load(f)
+with open('history.json', 'r') as file:
+    data = json.load(file)
 
-        df = pd.DataFrame.from_dict(data, orient='index')
-        df.index = pd.to_datetime(df.index)
-        df = df[(df.index >= start_date) & (df.index <= end_date)]
-
-        return df
-    except FileNotFoundError:
-        return None
+df = pd.DataFrame.from_dict(data, orient='index')
+df.index = pd.to_datetime(df.index)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == 'POST':
-        
-        symbol = request.form['symbol'].upper()
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
+    max_date = date.today().strftime("%Y-%m-%d")
+    
+    if request.method == "POST":
         today = date.today()
-        df = load_data(symbol, start_date, end_date)
+        symbol = request.form["symbol"]
+        readable_download_new(symbol, '2021-01-01', today)
+        
+        start_date = request.form["start_date"]
+        end_date = request.form["end_date"]
 
-        if df is not None:
-            graph_json = df[['Close']].reset_index().to_json(orient='records')
-            return jsonify({'graph_data': graph_json})
-        else:
-            return jsonify({'error': 'No data found.'}), 404
+        
 
-    return render_template('index.html')
+        column_name = f"('Adj Close', '{symbol}')"
+        filtered_data = df.loc[start_date:end_date, column_name]
+        
+        dates = filtered_data.index.strftime('%Y-%m-%d').tolist()
+        prices = filtered_data.values.tolist()
+        
+        return jsonify(dates=dates, prices=prices)
+    return render_template('index.html', max_date=max_date)
+
+@app.route('/download', methods=['GET','POST'])
+def download():
+    
+
+    return render_template('download.html')
 
 @app.route('/backtestresults', methods=['GET', 'POST'])
 def backtesting():
