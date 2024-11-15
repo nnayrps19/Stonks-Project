@@ -6,10 +6,21 @@
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/app.css') }}">
 </head>
 <body>
-    <h1>SMA Crossover Backtest</h1>
+    <h1>Crossover Backtest</h1>
 
     <form method="POST">
-        <button type="submit">Run Backtest</button>
+        <label for="backtest_option">Backtest Strategy:</label>
+            <select name="backtest_option" id="backtest_option" required>
+                <option value="SMA">SMA</option>
+                <option value="BB">BB</option>
+                <option value="MACD">MACD</option>
+            </select><br><br>
+        <label for="symbol">Symbol:</label>
+            <select name="symbol" id="symbol" required>
+                <option value="FNGU">FNGU</option>
+                <option value="FNGD">FNGD</option>
+            </select><br><br>
+            <button type="submit">Run Backtest</button>
         <button type="button" onclick="window.location.href='/'">Back to Home</button>
     </form>
 

@@ -22,9 +22,9 @@ class SMAcross(Strategy):
             self.sell()
 
 
-def run_backtest():
+def run_backtest(symbol):
     
-    df = yf.download('FNGD', start='2021-01-01')
+    df = yf.download(symbol, start='2021-01-01')
 
     # Flatten MultiIndex
     df.columns = df.columns.map(lambda x: x[0])
@@ -36,7 +36,8 @@ def run_backtest():
     bt = Backtest(df, SMAcross, cash=100000)
     output = bt.run()
 
-    plot_path = 'static/backtest_plot.png'
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    plot_path = f'static/SMA_backtest_plot_{timestamp}.png'
     
     bt.plot(filename=plot_path)
 

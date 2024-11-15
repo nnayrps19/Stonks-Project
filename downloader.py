@@ -70,4 +70,4 @@ def readable_download_new(tick, start='2021-1-1', end=None):
     """Download function that createas a json that is easier to read"""
     data = yf.download(tick, start, end)
     data.index = data.index.strftime('%Y-%m-%d')
-    data.to_json('readable.json', orient='index', indent=1, index=True)
+    data.to_json('history.json', orient='index', indent=1, index=True)
