@@ -35,6 +35,43 @@ class MACDStrategy(Strategy):
         # Sell when MACD crosses below the signal line
         elif crossover(self.signal, self.macd):
             self.sell()
+class SMAcross(Strategy):
+    n1 = 50
+    n2 = 100
+
+    def init(self):
+        close = self.data.Close
+        self.sma1 = self.I(ta.trend.sma_indicator, pd.Series(close), self.n1)
+        self.sma2 = self.I(ta.trend.sma_indicator, pd.Series(close), self.n2)
+
+    def next(self):
+        if crossover(self.sma1, self.sma2):
+            self.buy()
+        elif crossover(self.sma2, self.sma1):
+            self.sell()
+
+
+
+def run_backtest(symbol):
+    
+    df = yf.download(symbol, start='2021-01-01')
+
+    # Flatten MultiIndex
+    df.columns = df.columns.map(lambda x: x[0])
+
+    # Optionally reset index
+    df.reset_index(inplace=True)
+
+    # Run the backtest
+    bt = Backtest(df, SMAcross, cash=100000)
+    output = bt.run()
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    plot_path = f'static/SMA_backtest_plot_{timestamp}.png'
+    
+    bt.plot(filename=plot_path)
+
+    return output, plot_path
 
 def run_BBS_backtest(symbol):
     # Download data from yfinance
@@ -71,5 +108,14 @@ def run_MACD_backtest(symbol):
     plot_path = f'static/MACD_backtest_plot_{timestamp}.png'
     bt.plot(filename=plot_path)
 
+    return output, plot_path
+def run_backtest_option(backtest_option, symbol):
+    if backtest_option == 'SMA':
+        output, plot_path = run_backtest(symbol)
+    elif backtest_option == 'BB':
+        output, plot_path = run_BBS_backtest(symbol)
+    elif backtest_option == 'MACD':
+        output, plot_path = run_MACD_backtest(symbol)
+    
     return output, plot_path
 
