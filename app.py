@@ -41,12 +41,15 @@ def backtesting():
     if request.method == 'POST':
         backtest_option = request.form["backtest_option"]
         symbol = request.form["symbol"]
-        output, plot_path = run_backtest_option(backtest_option, symbol)
+        output, plot_path, trades_csv_path = run_backtest_option(backtest_option, symbol)
         
         results = output.to_dict()
+
+        trades_df = pd.read_csv(trades_csv_path)
+        trades_html = trades_df.to_html(classes="table table-striped", index=False)
         
         
-        return render_template('backtestresults.html', plot_url=plot_path, results=results)
+        return render_template('backtestresults.html', plot_url=plot_path, results=results, trades_table=trades_html)
     return render_template('backtestresults.html')
 
 

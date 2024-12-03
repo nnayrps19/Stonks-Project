@@ -65,13 +65,15 @@ def run_backtest(symbol):
     # Run the backtest
     bt = Backtest(df, SMAcross, cash=100000)
     output = bt.run()
+    trades = output['_trades']
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     plot_path = f'static/SMA_backtest_plot_{timestamp}.png'
+    trades_csv_path = f'static/SMA_trades_{timestamp}.csv'
     
     bt.plot(filename=plot_path)
-
-    return output, plot_path
+    trades.to_csv(trades_csv_path, index=False)
+    return output, plot_path, trades_csv_path
 
 def run_BBS_backtest(symbol):
     # Download data from yfinance
@@ -111,11 +113,11 @@ def run_MACD_backtest(symbol):
     return output, plot_path
 def run_backtest_option(backtest_option, symbol):
     if backtest_option == 'SMA':
-        output, plot_path = run_backtest(symbol)
+        output, plot_path, trades_csv_path = run_backtest(symbol)
     elif backtest_option == 'BB':
-        output, plot_path = run_BBS_backtest(symbol)
+        output, plot_path, trades_csv_path = run_BBS_backtest(symbol)
     elif backtest_option == 'MACD':
-        output, plot_path = run_MACD_backtest(symbol)
+        output, plot_path, trades_csv_path = run_MACD_backtest(symbol)
     
-    return output, plot_path
+    return output, plot_path, trades_csv_path
 

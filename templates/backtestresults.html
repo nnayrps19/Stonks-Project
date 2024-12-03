@@ -49,5 +49,13 @@
             </tbody>
         </table>
     {% endif %}
+
+    {% if trades_table %}
+        <h2>Trade Data:</h2>
+        <div>
+            {{ trades_table | safe }}
+        </div>
+    {% endif %}
+
 </body>
 </html>
