@@ -92,9 +92,10 @@ def run_BBS_backtest(symbol):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     plot_path = f'static/BB_backtest_plot_{timestamp}.html'
     trades_csv_path = f'static/BBS_trades_{timestamp}.csv'
-    bt.plot(filename=plot_path)
+    
     trades.to_csv(trades_csv_path, index=False)
-    plot_url = url_for('static', filename=plot_path.split('static/'[1]))
+    bt.plot(filename=plot_path)
+    plot_url = url_for('static', filename=plot_path.split('static/')[1])
 
     return output, plot_url, trades_csv_path
 def run_MACD_backtest(symbol):
@@ -119,7 +120,7 @@ def run_MACD_backtest(symbol):
     trades_csv_path = f'static/MACD_trades_{timestamp}.csv'
     bt.plot(filename=plot_path)
     trades.to_csv(trades_csv_path, index=False)
-    plot_url = url_for('static/',filename=plot_path.split('static/'[1]))
+    plot_url = url_for('static/',filename=plot_path.split('static/')[1])
 
     return output, plot_url, trades_csv_path
 def run_backtest_option(backtest_option, symbol):
