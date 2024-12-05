@@ -2,8 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import pandas as pd
 import json
 from datetime import *
-from downloader import *
-from bollingerbandsbacktest import *
+from tradingstrategies import *
 from data_downloader import *
 import matplotlib.pyplot as plt
 
@@ -42,13 +41,11 @@ def backtesting():
         backtest_option = request.form["backtest_option"]
         symbol = request.form["symbol"]
         output, plot_path, trades_csv_path = run_backtest_option(backtest_option, symbol)
-        
-        results = output.to_dict()
 
         trades_df = pd.read_csv(trades_csv_path)
         trades_html = trades_df.to_html(classes="table table-striped", index=False)
         
-        
+        results = output.to_dict()
         return render_template('backtestresults.html', plot_url=plot_path, results=results, trades_table=trades_html)
     return render_template('backtestresults.html')
 

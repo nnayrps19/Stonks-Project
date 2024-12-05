@@ -30,8 +30,14 @@
         <img src="{{ plot_url }}" alt="Backtest Plot">
     {% endif %}
 
+    {% if trades_table %}
+        <h2>Trade Data:</h2>
+        <div>
+            {{ trades_table | safe }}
+        </div>
+    {% endif %}
     {% if results %}
-        <h2>Backtest Results:</h2>
+        <h1>Backtest Results:</h1>
         <table border="1">
             <thead>
                 <tr>
@@ -50,12 +56,6 @@
         </table>
     {% endif %}
 
-    {% if trades_table %}
-        <h2>Trade Data:</h2>
-        <div>
-            {{ trades_table | safe }}
-        </div>
-    {% endif %}
 
 </body>
 </html>
