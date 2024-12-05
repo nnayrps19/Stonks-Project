@@ -90,12 +90,13 @@ def run_BBS_backtest(symbol):
     trades['ExitDate'] = trades['ExitBar'].apply(lambda x:df['Date'].iloc[x])
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/BB_backtest_plot_{timestamp}.png'
+    plot_path = f'static/BB_backtest_plot_{timestamp}.html'
     trades_csv_path = f'static/BBS_trades_{timestamp}.csv'
     bt.plot(filename=plot_path)
     trades.to_csv(trades_csv_path, index=False)
+    plot_url = url_for('static', filename=plot_path.split('static/'[1]))
 
-    return output, plot_path, trades_csv_path
+    return output, plot_url, trades_csv_path
 def run_MACD_backtest(symbol):
     # Download data from yfinance
     df = yf.download(symbol, start='2021-01-01')
@@ -114,12 +115,13 @@ def run_MACD_backtest(symbol):
     trades['EntryDate'] = trades['EntryBar'].apply(lambda x:df['Date'].iloc[x])
     trades['ExitDate'] = trades['ExitBar'].apply(lambda x:df['Date'].iloc[x])
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/MACD_backtest_plot_{timestamp}.png'
+    plot_path = f'static/MACD_backtest_plot_{timestamp}.html'
     trades_csv_path = f'static/MACD_trades_{timestamp}.csv'
     bt.plot(filename=plot_path)
     trades.to_csv(trades_csv_path, index=False)
+    plot_url = url_for('static/',filename=plot_path.split('static/'[1]))
 
-    return output, plot_path, trades_csv_path
+    return output, plot_url, trades_csv_path
 def run_backtest_option(backtest_option, symbol):
     if backtest_option == 'SMA':
         output, plot_path, trades_csv_path = run_backtest(symbol)
