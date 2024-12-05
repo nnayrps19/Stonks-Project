@@ -66,4 +66,4 @@ All trades and relevant metrics are logged in a JSON file (`trade_log.json`) for
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/automated-trading-system.git
+   git clone https://github.com/nnayrps19/Stonks-Project.git
