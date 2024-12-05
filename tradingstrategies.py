@@ -51,7 +51,8 @@ class SMAcross(Strategy):
         elif crossover(self.sma2, self.sma1):
             self.sell()
 
-def run_backtest(symbol):
+def run_backtest(symbol, strategy):
+    strat = ""
     
     df = yf.download(symbol, start='2021-01-01')
 
@@ -62,74 +63,34 @@ def run_backtest(symbol):
     df.reset_index(inplace=True)
 
     # Run the backtest
-    bt = Backtest(df, SMAcross, cash=100000)
+    bt = Backtest(df, strategy, cash=100000)
+    if strategy == SMAcross:
+        strat = "SMA"
+    elif strategy == BollingerBandsStrategy:
+        strat = "BB"
+    elif strategy == MACDStrategy:
+        strat = "MACD"
     output = bt.run()
     trades = output['_trades']
     trades['EntryDate'] = trades['EntryBar'].apply(lambda x: df['Date'].iloc[x])
     trades['ExitDate'] = trades['ExitBar'].apply(lambda x: df['Date'].iloc[x])
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/SMA_backtest_plot_{timestamp}.html'
-    trades_csv_path = f'static/SMA_trades_{timestamp}.csv'
+    plot_path = f'static/{strat}_backtest_plot_{timestamp}.html'
+    trades_csv_path = f'static/{strat}_trades_{timestamp}.csv'
     
     bt.plot(filename=plot_path)
     trades.to_csv(trades_csv_path, index=False)
     plot_url = url_for('static', filename=plot_path.split('static/')[1])
     return output, plot_url, trades_csv_path
-
-def run_BBS_backtest(symbol):
-    df = yf.download(symbol, start='2021-01-01')
-    df.columns = df.columns.map(lambda x: x[0])
-
-    df.reset_index(inplace=True)
-    bt = Backtest(df, BollingerBandsStrategy, cash=100000)
-    output = bt.run()
-    trades = output['_trades']
-
-    trades['EntryDate'] = trades['EntryBar'].apply(lambda x:df['Date'].iloc[x])
-    trades['ExitDate'] = trades['ExitBar'].apply(lambda x:df['Date'].iloc[x])
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/BB_backtest_plot_{timestamp}.html'
-    trades_csv_path = f'static/BBS_trades_{timestamp}.csv'
     
-    trades.to_csv(trades_csv_path, index=False)
-    bt.plot(filename=plot_path)
-    plot_url = url_for('static', filename=plot_path.split('static/')[1])
-
-    return output, plot_url, trades_csv_path
-def run_MACD_backtest(symbol):
-    # Download data from yfinance
-    df = yf.download(symbol, start='2021-01-01')
-
-    # Flatten MultiIndex
-    df.columns = df.columns.map(lambda x: x[0])
-
-    # Optionally reset index
-    df.reset_index(inplace=True)
-
-    # Run the backtest
-    bt = Backtest(df, MACDStrategy, cash=100000)
-    output = bt.run()
-    trades = output['_trades']
-
-    trades['EntryDate'] = trades['EntryBar'].apply(lambda x:df['Date'].iloc[x])
-    trades['ExitDate'] = trades['ExitBar'].apply(lambda x:df['Date'].iloc[x])
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/MACD_backtest_plot_{timestamp}.html'
-    trades_csv_path = f'static/MACD_trades_{timestamp}.csv'
-    bt.plot(filename=plot_path)
-    trades.to_csv(trades_csv_path, index=False)
-    plot_url = url_for('static/',filename=plot_path.split('static/')[1])
-
-    return output, plot_url, trades_csv_path
 def run_backtest_option(backtest_option, symbol):
     if backtest_option == 'SMA':
-        output, plot_path, trades_csv_path = run_backtest(symbol)
+        output, plot_path, trades_csv_path = run_backtest(symbol, SMAcross)
     elif backtest_option == 'BB':
-        output, plot_path, trades_csv_path = run_BBS_backtest(symbol)
+        output, plot_path, trades_csv_path = run_backtest(symbol, BollingerBandsStrategy)
     elif backtest_option == 'MACD':
-        output, plot_path, trades_csv_path = run_MACD_backtest(symbol)
+        output, plot_path, trades_csv_path = run_backtest(symbol, MACDStrategy)
     
     return output, plot_path, trades_csv_path
 
