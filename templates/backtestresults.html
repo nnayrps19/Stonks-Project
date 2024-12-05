@@ -23,19 +23,19 @@
             <button type="submit">Run Backtest</button>
         <button type="button" onclick="window.location.href='/'">Back to Home</button>
     </form>
-
-    {% if plot_url %}
-        
-        <h2>Backtest Plot:</h2>
-        <img src="{{ plot_url }}" alt="Backtest Plot">
-    {% endif %}
-
     {% if trades_table %}
         <h2>Trade Data:</h2>
         <div>
             {{ trades_table | safe }}
         </div>
     {% endif %}
+
+    {% if plot_url %}
+        
+        <h2>Backtest Plot:</h2>
+        <iframe src="{{ plot_url }}" width="100%" height="700px"></iframe>
+    {% endif %}
+
     {% if results %}
         <h1>Backtest Results:</h1>
         <table border="1">

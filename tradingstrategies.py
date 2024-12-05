@@ -4,6 +4,7 @@ import pandas as pd
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from datetime import *
+from flask import url_for
 
 class BollingerBandsStrategy(Strategy):
     def init(self):
@@ -68,12 +69,13 @@ def run_backtest(symbol):
     trades['ExitDate'] = trades['ExitBar'].apply(lambda x: df['Date'].iloc[x])
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/SMA_backtest_plot_{timestamp}.png'
+    plot_path = f'static/SMA_backtest_plot_{timestamp}.html'
     trades_csv_path = f'static/SMA_trades_{timestamp}.csv'
     
     bt.plot(filename=plot_path)
     trades.to_csv(trades_csv_path, index=False)
-    return output, plot_path, trades_csv_path
+    plot_url = url_for('static', filename=plot_path.split('static/')[1])
+    return output, plot_url, trades_csv_path
 
 def run_BBS_backtest(symbol):
     df = yf.download(symbol, start='2021-01-01')
