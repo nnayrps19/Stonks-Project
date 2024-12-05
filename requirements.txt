@@ -50,4 +50,3 @@ Werkzeug==3.0.4
 WTForms==3.1.2
 xyzservices==2024.9.0
 yfinance==0.2.46
-pywin32==308; platform_system == "Windows"
