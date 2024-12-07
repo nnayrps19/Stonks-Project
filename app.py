@@ -40,7 +40,9 @@ def backtesting():
     if request.method == 'POST':
         backtest_option = request.form["backtest_option"]
         symbol = request.form["symbol"]
-        output, plot_url, trades_csv_path = run_backtest_option(backtest_option, symbol)
+        start_date = request.form["start_date"]
+        end_date = request.form["end_date"]
+        output, plot_url, trades_csv_path = run_backtest_option(backtest_option, symbol, start_date, end_date)
 
         trades_df = pd.read_csv(trades_csv_path)
         trades_html = trades_df.to_html(classes="table table-striped", index=False)

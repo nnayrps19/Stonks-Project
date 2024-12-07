@@ -51,10 +51,10 @@ class SMAcross(Strategy):
         elif crossover(self.sma2, self.sma1):
             self.sell()
 
-def run_backtest(symbol, strategy):
+def run_backtest(symbol, strategy, start_date, end_date):
     strat = ""
     
-    df = yf.download(symbol, start='2021-01-01')
+    df = yf.download(symbol, start_date, end_date)
 
     # Flatten MultiIndex
     df.columns = df.columns.map(lambda x: x[0])
@@ -84,13 +84,13 @@ def run_backtest(symbol, strategy):
     plot_url = url_for('static', filename=plot_path.split('static/')[1])
     return output, plot_url, trades_csv_path
     
-def run_backtest_option(backtest_option, symbol):
+def run_backtest_option(backtest_option, symbol, start_date, end_date):
     if backtest_option == 'SMA':
-        output, plot_path, trades_csv_path = run_backtest(symbol, SMAcross)
+        output, plot_path, trades_csv_path = run_backtest(symbol, SMAcross,start_date, end_date)
     elif backtest_option == 'BB':
-        output, plot_path, trades_csv_path = run_backtest(symbol, BollingerBandsStrategy)
+        output, plot_path, trades_csv_path = run_backtest(symbol, BollingerBandsStrategy,start_date, end_date)
     elif backtest_option == 'MACD':
-        output, plot_path, trades_csv_path = run_backtest(symbol, MACDStrategy)
+        output, plot_path, trades_csv_path = run_backtest(symbol, MACDStrategy,start_date, end_date)
     
     return output, plot_path, trades_csv_path
 
