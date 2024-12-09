@@ -1,75 +1,71 @@
-import queue
 import random
 import time
 import threading
-import json
+from typing import Callable, List
 
 class Publisher:
     def __init__(self):
-        self.message_queue = queue.Queue()
         self.subscribers = []
 
-    def subscribe(self, subscriber):
-        self.subscribers.append(subscriber)
+    def subscribe(self, callback: Callable[[str, float], None]):
+        """Add a subscriber callback function."""
+        self.subscribers.append(callback)
 
-    def publish(self, message):
-        self.message_queue.put(message)
+    def unsubscribe(self, callback: Callable[[str, float], None]):
+        """Remove a subscriber callback function."""
+        self.subscribers.remove(callback)
+
+    def notify(self, stock: str, price: float):
+        """Notify all subscribers with updated data."""
         for subscriber in self.subscribers:
-            subscriber.receive(message)
+            subscriber(stock, price)
 
-
-class Subscriber:
-    def __init__(self, name):
-        self.name = name
-
-    def receive(self, message):
-        print(f"{self.name} received message: {message}")
-
-
-class PricePublisher(Publisher):
-    def __init__(self, json_file):
-        super().__init__()
-        self.json_file = json_file
-        self.prices = self.load_prices()
-
-    def load_prices(self):
-        try:
-            with open(self.json_file, 'r') as file:
-                return json.load(file)
-        except FileNotFoundError:
-            print("JSON file not found. Using default prices.")
-            return {"FNGU": 100.0, "FNGD": 50.0}
-
-    def save_prices(self):
-        with open(self.json_file, 'w') as file:
-            json.dump(self.prices, file, indent=4)
+class StockPriceSimulator:
+    def __init__(self, publisher: Publisher, stocks: List[str]):
+        self.publisher = publisher
+        self.prices = {stock: random.uniform(50, 500) for stock in stocks}  # Initial random prices
 
     def simulate_price_changes(self):
+        """Simulate random price changes and notify the publisher."""
         while True:
-            for symbol in self.prices:
-                change = random.uniform(-1.0, 1.0) 
-                self.prices[symbol] = round(self.prices[symbol] + change, 2)
-                self.publish({symbol: self.prices[symbol]})
-            self.save_prices()  
-            time.sleep(1)  
+            stock = random.choice(list(self.prices.keys()))
+            delta = random.uniform(-5, 5)  # Random price change
+            self.prices[stock] += delta
+            self.prices[stock] = max(0, self.prices[stock])  # Ensure price doesn't go negative
+            print(f"[Simulator] {stock} new price: {self.prices[stock]:.2f}")
+            self.publisher.notify(stock, self.prices[stock])
+            time.sleep(random.uniform(1, 3))  # Random interval between updates
 
+class Subscriber:
+    def __init__(self, name: str):
+        self.name = name
+
+    def update(self, stock: str, price: float):
+        """Receive updates from the publisher."""
+        print(f"[Subscriber: {self.name}] {stock} price updated to {price:.2f}")
 
 if __name__ == "__main__":
-    json_file = "prices.json"
-    publisher = PricePublisher(json_file)
+    # Initialize publisher
+    publisher = Publisher()
 
+    # Create and subscribe subscribers
+    subscriber1 = Subscriber("Trader A")
+    subscriber2 = Subscriber("Investor B")
+    
+    publisher.subscribe(subscriber1.update)
+    publisher.subscribe(subscriber2.update)
 
-    subscriber_1 = Subscriber("Subscriber 1")
-    subscriber_2 = Subscriber("Subscriber 2")
+    # Initialize stock price simulator
+    stocks = ["FNGU", "FNGD"]
+    simulator = StockPriceSimulator(publisher, stocks)
 
-    publisher.subscribe(subscriber_1)
-    publisher.subscribe(subscriber_2)
+    # Start simulation in a separate thread
+    simulator_thread = threading.Thread(target=simulator.simulate_price_changes, daemon=True)
+    simulator_thread.start()
 
-    price_simulation_thread = threading.Thread(target=publisher.simulate_price_changes, daemon=True)
-    price_simulation_thread.start()
 
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Program terminated.")
+        print("Simulation stopped.")
