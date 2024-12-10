@@ -53,7 +53,7 @@ class SMAcross(Strategy):
 
 def run_backtest(symbol, strategy, start_date, end_date):
     strat = ""
-    
+    initial_balance = 100000
     df = yf.download(symbol, start_date, end_date)
 
     # Flatten MultiIndex
@@ -74,13 +74,43 @@ def run_backtest(symbol, strategy, start_date, end_date):
     trades = output['_trades']
     trades['EntryDate'] = trades['EntryBar'].apply(lambda x: df['Date'].iloc[x])
     trades['ExitDate'] = trades['ExitBar'].apply(lambda x: df['Date'].iloc[x])
+    trades['Symbol'] = symbol
+    trades['TransactionType'] = trades['Size'].apply(lambda x: 'Buy' if x > 0 else 'Sell')
+    trades['Shares'] = trades['Size'].abs()
+    trades['TransactionAmount'] = trades['EntryPrice'] * trades['Shares']
+    trades['Gain/Loss'] = trades['PnL']
+    trades['Balance'] = initial_balance + trades['Gain/Loss'].cumsum()
+    trades_filtered = trades[[
+        'EntryDate', 'ExitDate', 'Symbol', 'TransactionType', 
+        'Shares', 'TransactionAmount', 'Gain/Loss', 'Balance'
+    ]]
+
+    # Calculate summary metrics
+    total_gain_loss = trades['Gain/Loss'].sum()
+    total_return_pct = (trades['Balance'].iloc[-1] / initial_balance - 1) * 100
+    annual_return_pct = ((1 + total_return_pct / 100) ** (1 / ((df['Date'].iloc[-1] - df['Date'].iloc[0]).days / 365)) - 1) * 100
+    current_balance = trades['Balance'].iloc[-1]
+
+    # Append summary row
+    summary_row = pd.DataFrame({
+        'EntryDate': [None],
+        'ExitDate': [None],
+        'Symbol': [symbol],
+        'TransactionType': ['Summary'],
+        'Shares': [None],
+        'TransactionAmount': [None],
+        'Gain/Loss': [total_gain_loss],
+        'Balance': [current_balance]
+    })
+    trades_filtered = pd.concat([trades_filtered, summary_row], ignore_index=True)
+
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     plot_path = f'static/{strat}_backtest_plot_{timestamp}.html'
     trades_csv_path = f'static/{strat}_trades_{timestamp}.csv'
     
     bt.plot(filename=plot_path)
-    trades.to_csv(trades_csv_path, index=False)
+    trades_filtered.to_csv(trades_csv_path, index=False)
     plot_url = url_for('static', filename=plot_path.split('static/')[1])
     return output, plot_url, trades_csv_path
     
