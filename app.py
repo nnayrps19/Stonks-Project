@@ -16,16 +16,19 @@ def index():
     max_date = date.today().strftime("%Y-%m-%d")
     
     if request.method == "POST":
+        DH = DataDownloader()
+        DataCalc = DataCalculator(DH)
+
         today = date.today()
         symbol = request.form["symbol"]
         start_date = request.form["start_date"]
-        readable_download_new(symbol, '2021-01-01', today)
+        DataCalc.readable_download_new(symbol, '2021-01-01', today)
         end_date = request.form["end_date"]
         
         
-        filtered_data = get_filtered_data(symbol,start_date,end_date)
+        filtered_data = DataCalc.get_filtered_data(symbol,start_date,end_date)
         # Calculates current price, percent change
-        current_price, percent_change = calculate_prices(filtered_data)
+        current_price, percent_change = DataCalc.calculate_prices(filtered_data)
 
         dates = filtered_data.index.strftime('%Y-%m-%d').tolist()
         prices = filtered_data.values.tolist()
@@ -35,14 +38,10 @@ def index():
 
 
 @app.route('/backtestresults', methods=['GET', 'POST'])
-def backtesting():
-    
+def backtesting(): 
     if request.method == 'POST':
-        backtest_option = request.form["backtest_option"]
-        symbol = request.form["symbol"]
-        start_date = request.form["start_date"]
-        end_date = request.form["end_date"]
-        output, plot_url, trades_csv_path = run_backtest_option(backtest_option, symbol, start_date, end_date)
+        BacktestObject = Context.__init__("BTObject", request.form["symbol"], request.form["backtest_option"], request.form["start_date"], request.form["end_date"])
+        output, plot_url, trades_csv_path = BacktestObject.run_backtest_option()
 
         trades_df = pd.read_csv(trades_csv_path)
         trades_html = trades_df.to_html(classes="table table-striped", index=False)
