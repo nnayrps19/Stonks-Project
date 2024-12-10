@@ -8,15 +8,15 @@ class Publisher:
         self.subscribers = []
 
     def subscribe(self, callback: Callable[[str, float], None]):
-        """Add a subscriber callback function."""
+
         self.subscribers.append(callback)
 
     def unsubscribe(self, callback: Callable[[str, float], None]):
-        """Remove a subscriber callback function."""
+
         self.subscribers.remove(callback)
 
     def notify(self, stock: str, price: float):
-        """Notify all subscribers with updated data."""
+   
         for subscriber in self.subscribers:
             subscriber(stock, price)
 
