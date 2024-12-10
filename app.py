@@ -2,8 +2,9 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import pandas as pd
 import json
 from datetime import *
-from tradingstrategies import *
-from data_downloader import *
+from model.tradingstrategies import *
+from model.data_downloader import *
+from model.tradingstrategies import Context
 import matplotlib.pyplot as plt
 
 

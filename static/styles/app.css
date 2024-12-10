@@ -96,5 +96,9 @@ body {
 .button-30, .button-60 {
     width: 48%; 
 }
+.center {
+  margin: 0 auto;
+  text-align: center;
+}
 
 

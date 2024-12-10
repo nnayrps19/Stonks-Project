@@ -5,6 +5,8 @@ from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from datetime import *
 from flask import url_for
+from bokeh.io import output_file, save
+
 
 class BollingerBandsStrategy(Strategy):
     def init(self):
@@ -61,7 +63,6 @@ def run_backtest(symbol, strategy, start_date, end_date):
 
     # Optionally reset index
     df.reset_index(inplace=True)
-
     # Run the backtest
     bt = Backtest(df, strategy, cash=100000)
     if strategy == SMAcross:
@@ -123,4 +124,13 @@ def run_backtest_option(backtest_option, symbol, start_date, end_date):
         output, plot_path, trades_csv_path = run_backtest(symbol, MACDStrategy,start_date, end_date)
     
     return output, plot_path, trades_csv_path
+class Context():
+    def __init__(self, symbol, btoption, start_date, end_date):
+        self.Strategy = btoption
+        self.Symbol = symbol
+        self.Start_Date = start_date
+        self.End_Date = end_date
+    def run_backtest_option(self):
+        output, plot_path, trades_csv_path = run_backtest(self.Symbol, self.Strategy ,self.Start_Date, self.End_Date)
+        return output, plot_path, trades_csv_path
 
