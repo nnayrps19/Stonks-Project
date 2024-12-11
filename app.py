@@ -16,8 +16,10 @@ def index():
     max_date = date.today().strftime("%Y-%m-%d")
     
     if request.method == "POST":
-        DH = DataDownloader()
-        DataCalc = DataCalculator(DH)
+        #Use of new adapter for data access
+        yahoo_finance_data_access = YahooFinanceDataAccess()
+        DataClac = YahooFinanceAdapter(yahoo_finance_data_access)
+        DataCalc = DataCalculator(DataCalc)
 
         today = date.today()
         symbol = request.form["symbol"]
