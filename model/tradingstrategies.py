@@ -5,7 +5,7 @@ from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from datetime import *
 from flask import url_for
-from bokeh.io import output_file, save
+import plotly.graph_objects as go
 
 
 class BollingerBandsStrategy(Strategy):
@@ -57,20 +57,18 @@ def run_backtest(symbol, strategy, start_date, end_date):
     strat = ""
     initial_balance = 100000
     df = yf.download(symbol, start_date, end_date)
-
-    # Flatten MultiIndex
     df.columns = df.columns.map(lambda x: x[0])
-
-    # Optionally reset index
     df.reset_index(inplace=True)
     # Run the backtest
-    bt = Backtest(df, strategy, cash=100000)
-    if strategy == SMAcross:
-        strat = "SMA"
-    elif strategy == BollingerBandsStrategy:
-        strat = "BB"
-    elif strategy == MACDStrategy:
-        strat = "MACD"
+    
+    BacktestStrategyOperation = None
+    if strategy == 'SMA':
+        BacktestStrategyOperation = SMAcross
+    elif strategy == 'BB':
+        BacktestStrategyOperation = BollingerBandsStrategy
+    elif strategy == 'MACD':
+        BacktestStrategyOperation = MACDStrategy
+    bt = Backtest(df, BacktestStrategyOperation, cash=100000)
     output = bt.run()
     trades = output['_trades']
     trades['EntryDate'] = trades['EntryBar'].apply(lambda x: df['Date'].iloc[x])
@@ -86,13 +84,11 @@ def run_backtest(symbol, strategy, start_date, end_date):
         'Shares', 'TransactionAmount', 'Gain/Loss', 'Balance'
     ]]
 
-    # Calculate summary metrics
     total_gain_loss = trades['Gain/Loss'].sum()
     total_return_pct = (trades['Balance'].iloc[-1] / initial_balance - 1) * 100
     annual_return_pct = ((1 + total_return_pct / 100) ** (1 / ((df['Date'].iloc[-1] - df['Date'].iloc[0]).days / 365)) - 1) * 100
     current_balance = trades['Balance'].iloc[-1]
 
-    # Append summary row
     summary_row = pd.DataFrame({
         'EntryDate': [None],
         'ExitDate': [None],
@@ -115,15 +111,6 @@ def run_backtest(symbol, strategy, start_date, end_date):
     plot_url = url_for('static', filename=plot_path.split('static/')[1])
     return output, plot_url, trades_csv_path
     
-def run_backtest_option(backtest_option, symbol, start_date, end_date):
-    if backtest_option == 'SMA':
-        output, plot_path, trades_csv_path = run_backtest(symbol, SMAcross,start_date, end_date)
-    elif backtest_option == 'BB':
-        output, plot_path, trades_csv_path = run_backtest(symbol, BollingerBandsStrategy,start_date, end_date)
-    elif backtest_option == 'MACD':
-        output, plot_path, trades_csv_path = run_backtest(symbol, MACDStrategy,start_date, end_date)
-    
-    return output, plot_path, trades_csv_path
 class Context():
     def __init__(self, symbol, btoption, start_date, end_date):
         self.Strategy = btoption
