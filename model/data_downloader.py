@@ -19,7 +19,7 @@ class DH_Abstract(ABC):
 # Concrete Component
 class DataDownloader(DH_Abstract):
     def get_filtered_data(self, symbol,start_date,end_date):
-        with open('history.json', 'r') as file:
+        with open('data/history.json', 'r') as file:
                 data = json.load(file)
 
         df = pd.DataFrame.from_dict(data, orient='index')
@@ -34,7 +34,7 @@ class DataDownloader(DH_Abstract):
         """Download function that createas a json that is easier to read"""
         data = yf.download(tick, start, end)
         data.index = data.index.strftime('%Y-%m-%d')
-        data.to_json('history.json', orient='index', indent=1, index=True)
+        data.to_json('data/history.json', orient='index', indent=1, index=True)
     def calculate_prices(self, filtered_data):
         current_price = filtered_data.iloc[-1] if not filtered_data.empty else None
         prev_price = filtered_data.iloc[-2] if len(filtered_data) > 1 else current_price
@@ -51,7 +51,7 @@ class YahooFinanceDataAccess:
     def download_new_data(self, tick, start='2021-1-1', end = None):
         data = yf.download(tick,start)
         data.index = data.index.strftime('%Y-%m-%d')
-        data.to_json('history.json', orient='index', indent=1, index=True)
+        data.to_json('data/history.json', orient='index', indent=1, index=True)
 
 #Adapter
 class YahooFinanceAdapter(DH_Abstract):
