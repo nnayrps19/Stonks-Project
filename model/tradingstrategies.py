@@ -53,24 +53,15 @@ class SMAcross(Strategy):
         elif crossover(self.sma2, self.sma1):
             self.sell()
 
-def run_backtest(symbol, strategy, start_date, end_date):
-    strat = ""
-    initial_balance = 100000
+def generate_csv_file(trades,symbol,initial_balance,start_date,end_date):
     df = yf.download(symbol, start_date, end_date)
     df.columns = df.columns.map(lambda x: x[0])
     df.reset_index(inplace=True)
-    # Run the backtest
-    
-    BacktestStrategyOperation = None
-    if strategy == 'SMA':
-        BacktestStrategyOperation = SMAcross
-    elif strategy == 'BB':
-        BacktestStrategyOperation = BollingerBandsStrategy
-    elif strategy == 'MACD':
-        BacktestStrategyOperation = MACDStrategy
-    bt = Backtest(df, BacktestStrategyOperation, cash=100000)
-    output = bt.run()
-    trades = output['_trades']
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError("The 'df' parameter must be a pandas DataFrame")
+    if 'Date' not in df.columns:
+        raise ValueError("DataFrame 'df' must contain a 'Date' column")
+
     trades['EntryDate'] = trades['EntryBar'].apply(lambda x: df['Date'].iloc[x])
     trades['ExitDate'] = trades['ExitBar'].apply(lambda x: df['Date'].iloc[x])
     trades['Symbol'] = symbol
@@ -100,7 +91,27 @@ def run_backtest(symbol, strategy, start_date, end_date):
         'Balance': [current_balance]
     })
     trades_filtered = pd.concat([trades_filtered, summary_row], ignore_index=True)
+    return trades_filtered
 
+def run_backtest(symbol, strategy, start_date, end_date):
+    strat = ""
+    initial_balance = 100000
+    df = yf.download(symbol, start_date, end_date)
+    df.columns = df.columns.map(lambda x: x[0])
+    df.reset_index(inplace=True)
+    # Run the backtest
+    
+    BacktestStrategyOperation = None
+    if strategy == 'SMA':
+        BacktestStrategyOperation = SMAcross
+    elif strategy == 'BB':
+        BacktestStrategyOperation = BollingerBandsStrategy
+    elif strategy == 'MACD':
+        BacktestStrategyOperation = MACDStrategy
+    bt = Backtest(df, BacktestStrategyOperation, cash=100000)
+    output = bt.run()
+    trades = output['_trades']
+    trades_filtered = generate_csv_file(trades,symbol,initial_balance,start_date,end_date)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     plot_path = f'view/static/{strat}_backtest_plot_{timestamp}.html'
