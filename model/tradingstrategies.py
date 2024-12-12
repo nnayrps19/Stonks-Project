@@ -103,8 +103,8 @@ def run_backtest(symbol, strategy, start_date, end_date):
 
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plot_path = f'static/{strat}_backtest_plot_{timestamp}.html'
-    trades_csv_path = f'static/{strat}_trades_{timestamp}.csv'
+    plot_path = f'view/static/{strat}_backtest_plot_{timestamp}.html'
+    trades_csv_path = f'view/static/{strat}_trades_{timestamp}.csv'
     
     bt.plot(filename=plot_path)
     trades_filtered.to_csv(trades_csv_path, index=False)
