@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading System</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/app.css') }}">
+</head>
+<body class="container">
+    <h1>Trading System - Historical Data</h1>
+
+    <form id="dataForm" method="POST" action="/">
+        <div class="data">
+            <label for="symbol">Symbol:</label>
+            <select name="symbol" id="symbol" required>
+                <option value="FNGU">FNGU</option>
+                <option value="FNGD">FNGD</option>
+            </select><br><br>
+
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" value="2021-01-01" min="2021-01-01" max="{{ max_date }}" required><br><br>
+
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ max_date }}" min="2021-01-01" max="{{ max_date }}" required><br><br>
+
+            <div class="button-container">
+                <button class="button-30" role="button" type="submit">Get Data</button>
+                <button class="button-30" type="button" onclick="window.location.href='/backtestresults'">Backtesting</button>
+            </div>
+            <p>Current Price: <span id="currentPrice"></span></p>
+            <p>Price Change (%): <span id="priceChange"></span></p>
+        </div>
+    </form>
+
+    <!-- Plotly Chart Div -->
+
+    <div id="chart" style="width:100%;height:600px;"></div>
+
+    
+
+
+    <script>
+        document.getElementById("dataForm").addEventListener("submit", async function(event) {
+            event.preventDefault();  // Prevent form from submitting normally
+            
+            // Fetch form data
+            const formData = new FormData(event.target);
+            const response = await fetch("/", {
+                method: "POST",
+                body: formData
+            });
+
+            // Parse JSON response
+            const result = await response.json();
+            const dates = result.dates;
+            const prices = result.prices;
+
+
+            // Plot data using Plotly
+            const trace = {
+                x: dates,
+                y: prices,
+                type: "scatter",
+                mode: "lines",
+                name: formData.get("symbol")
+            };
+
+            const layout = {
+                title: `${formData.get("symbol")} Historical Data`,
+                xaxis: { title: "Date" },
+                yaxis: { title: "Adj Close Price (USD)" }
+            };
+
+            Plotly.newPlot("chart", [trace], layout);
+
+            document.getElementById("currentPrice").innerText = `$${result.current_price.toFixed(2)}`;
+            document.getElementById("priceChange").innerText = `${result.percent_change.toFixed(2)}%`;
+
+        });
+    </script>
+    <title>Real-Time Stock Prices</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            var socket = io();
+
+            socket.on('price_update', function(data) {
+                var stock = data.stock;
+                var price = data.price.toFixed(2);
+                var priceElement = document.getElementById(stock);
+                if (priceElement) {
+                    priceElement.innerText = `${stock} price updated to: $ ${price}`;
+                } else {
+                    var newElement = document.createElement('div');
+                    newElement.id = stock;
+                    newElement.innerText = `${stock} price updated to: $ ${price}`;
+                    document.body.appendChild(newElement);
+                }
+            });
+        });
+    </script>
+</head>
+<body class="container">
+    <h1>Real-Time Stock Prices</h1>
+    <div id="FNGU" class="stock-price center body">Waiting for FNGU updates...</div>
+    <div id="FNGD" class="stock-price center body last-div">Waiting for FNGD updates...</div>
+</body>
+</html>
