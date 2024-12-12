@@ -6,9 +6,21 @@ import matplotlib.pyplot as plt
 from model.publisher_subscriber_pattern import *
 from model.tradingstrategies import *
 from model.data_downloader import *
+from flask_socketio import SocketIO, emit
 
 def create_app():
     app = Flask(__name__, template_folder='../view/templates', static_folder='../view/static')
+    socketio = SocketIO(app)
+    
+    class Subscriber:
+        def __init__(self, name: str):
+            self.name = name
+
+        def update(self, stock: str, price: float):
+            """Receive updates from the publisher."""
+            print(f"[Subscriber: {self.name}] {stock} price updated to {price:.2f}")
+            socketio.emit('price_update', {'stock': stock, 'price': price})
+
 
     @app.route('/', methods=['GET', 'POST'])
     def index():
@@ -53,5 +65,22 @@ def create_app():
             results = output.to_dict()
             return render_template('backtestresults.html', plot_url=plot_url, results=results, trades_table=trades_html)
         return render_template('backtestresults.html')
+    
+    publisher = Publisher()
 
-    return app
+    # Create and subscribe subscribers
+    subscriber1 = Subscriber("Trader A")
+    subscriber2 = Subscriber("Investor B")
+    
+    publisher.subscribe(subscriber1.update)
+    publisher.subscribe(subscriber2.update)
+
+    # Initialize stock price simulator
+    stocks = ["FNGU", "FNGD"]
+    simulator = StockPriceSimulator(publisher, stocks)
+
+    # Start simulation in a separate thread
+    simulator_thread = threading.Thread(target=simulator.simulate_price_changes, daemon=True)
+    simulator_thread.start()
+
+    return app, socketio
